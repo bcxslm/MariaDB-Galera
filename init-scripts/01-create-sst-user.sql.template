@@ -1,0 +1,20 @@
+-- Create SST (State Snapshot Transfer) user for Galera cluster
+-- This user is used for synchronization between nodes
+-- Note: This file is generated from a template with environment variables
+
+CREATE USER IF NOT EXISTS 'SST_USER_PLACEHOLDER'@'%' IDENTIFIED BY 'SST_PASSWORD_PLACEHOLDER';
+GRANT RELOAD, LOCK TABLES, PROCESS, REPLICATION CLIENT ON *.* TO 'SST_USER_PLACEHOLDER'@'%';
+
+-- Create a monitoring user for health checks
+CREATE USER IF NOT EXISTS 'MONITOR_USER_PLACEHOLDER'@'%' IDENTIFIED BY 'MONITOR_PASSWORD_PLACEHOLDER';
+GRANT SELECT ON *.* TO 'MONITOR_USER_PLACEHOLDER'@'%';
+
+-- Create a replication user for cluster communication
+CREATE USER IF NOT EXISTS 'REPL_USER_PLACEHOLDER'@'%' IDENTIFIED BY 'REPL_PASSWORD_PLACEHOLDER';
+GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'REPL_USER_PLACEHOLDER'@'%';
+
+-- Flush privileges to ensure changes take effect
+FLUSH PRIVILEGES;
+
+-- Show cluster status (for debugging)
+SHOW STATUS LIKE 'wsrep_%';

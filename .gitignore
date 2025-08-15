@@ -1,0 +1,77 @@
+# Environment files with sensitive data
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# MariaDB data and logs
+data/
+logs/
+mysql-data/
+mariadb-data/
+
+# Docker volumes
+volumes/
+
+# Backup files
+*.sql.backup
+*.sql.bak
+backup/
+backups/
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.DS_Store
+Thumbs.db
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker specific
+.dockerignore
+
+# Generated configuration files (if any)
+*-generated.cnf
+*-temp.cnf
+
+# SSL certificates and keys
+*.pem
+*.key
+*.crt
+*.csr
+ssl/
+certs/
+
+# Documentation build files
+_build/
+.doctrees/
+
+# Python cache (if using Python scripts)
+__pycache__/
+*.pyc
+*.pyo
+
+# Node modules (if using Node.js tools)
+node_modules/
+npm-debug.log*
+
+# Logs
+*.log
+logs/
+log/

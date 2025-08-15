@@ -1,0 +1,69 @@
+[mysqld]
+# Basic MariaDB settings
+bind-address = 0.0.0.0
+default_storage_engine = InnoDB
+innodb_autoinc_lock_mode = 2
+innodb_flush_log_at_trx_commit = 0
+innodb_buffer_pool_size = 512M
+
+# Binary logging
+log-bin = mysql-bin
+binlog_format = ROW
+
+# Galera Provider Configuration
+wsrep_on = ON
+wsrep_provider = /usr/lib/galera/libgalera_smm.so
+
+# Galera Cluster Configuration
+wsrep_cluster_name = "mariadb_galera_cluster"
+wsrep_cluster_address = "gcomm://HOST1_IP:4567,HOST2_IP:4567"
+
+# Galera Synchronization Configuration
+wsrep_sst_method = rsync
+
+# Security settings for SST
+# Note: Update this with actual credentials from .env file
+wsrep_sst_auth = "SST_USER_PLACEHOLDER:SST_PASSWORD_PLACEHOLDER"
+
+# Galera Node Configuration - NODE 2 SPECIFIC
+wsrep_node_name = "node2"
+wsrep_node_address = "HOST2_IP"
+
+# Galera replication configuration
+wsrep_slave_threads = 4
+wsrep_certify_nonPK = 1
+wsrep_max_ws_rows = 0
+wsrep_max_ws_size = 2147483647
+wsrep_debug = 0
+wsrep_convert_LOCK_to_trx = 0
+wsrep_retry_autocommit = 1
+wsrep_auto_increment_control = 1
+wsrep_drupal_282555_workaround = 0
+wsrep_causal_reads = 0
+wsrep_notify_cmd = ""
+
+# Performance tuning
+max_connections = 200
+thread_cache_size = 8
+query_cache_size = 64M
+query_cache_limit = 2M
+thread_stack = 192K
+transaction_isolation = READ-COMMITTED
+
+# Logging
+general_log = 1
+general_log_file = /var/log/mysql/mysql.log
+log_error = /var/log/mysql/error.log
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/mysql-slow.log
+long_query_time = 2
+
+# Character set
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+[mysql]
+default-character-set = utf8mb4
+
+[client]
+default-character-set = utf8mb4
