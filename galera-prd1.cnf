@@ -15,19 +15,18 @@ wsrep_on = ON
 wsrep_provider = /usr/lib/galera/libgalera_smm.so
 
 # Galera Cluster Configuration
-wsrep_cluster_name = "mariadb_galera_cluster"
-wsrep_cluster_address = "gcomm://HOST1_IP:4567,HOST2_IP:4567"
+wsrep_cluster_name = "dcsautomation_galera_cluster"
+wsrep_cluster_address = "gcomm://10.87.2.22:4567,10.87.2.23:4567"
 
 # Galera Synchronization Configuration
-wsrep_sst_method = rsync
+wsrep_sst_method = mariabackup
 
 # Security settings for SST
-# Note: Update this with actual credentials from .env file
-wsrep_sst_auth = "SST_USER_PLACEHOLDER:SST_PASSWORD_PLACEHOLDER"
+wsrep_sst_auth = "sst_user:hdazus1%frjp@AtD"
 
 # Galera Node Configuration - NODE 1 SPECIFIC
-wsrep_node_name = "node1"
-wsrep_node_address = "HOST1_IP"
+wsrep_node_name = "prd1"
+wsrep_node_address = "10.87.2.22"
 
 # Galera replication configuration
 wsrep_slave_threads = 4
@@ -39,16 +38,13 @@ wsrep_convert_LOCK_to_trx = 0
 wsrep_retry_autocommit = 1
 wsrep_auto_increment_control = 1
 wsrep_drupal_282555_workaround = 0
-wsrep_causal_reads = 0
 wsrep_notify_cmd = ""
 
 # Performance tuning
 max_connections = 200
 thread_cache_size = 8
-query_cache_size = 64M
-query_cache_limit = 2M
 thread_stack = 192K
-transaction_isolation = READ-COMMITTED
+transaction-isolation = READ-COMMITTED
 
 # Logging
 general_log = 1

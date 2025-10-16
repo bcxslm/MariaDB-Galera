@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   mariadb-node2:
-    image: mariadb:11.8
+    image: mariadb:lts
     container_name: mariadb-galera-node2
     hostname: mariadb-node2
     restart: unless-stopped
@@ -21,8 +21,8 @@ services:
       
     volumes:
       - mariadb_data:/var/lib/mysql
-      - ./galera-node2.cnf:/etc/mysql/conf.d/galera.cnf:ro
-      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+      - /data/docker_configs/mariadb_galera/conf/galera-prd2.cnf:/etc/mysql/conf.d/galera.cnf:ro
+      - /data/docker_configs/mariadb_galera/init-scripts:/docker-entrypoint-initdb.d:ro
       - mariadb_logs:/var/log/mysql
       
     networks:
@@ -34,9 +34,9 @@ services:
       --wsrep-provider=/usr/lib/galera/libgalera_smm.so
       --wsrep-cluster-name="${CLUSTER_NAME}"
       --wsrep-cluster-address=gcomm://${HOST1_IP}:4567,${HOST2_IP}:4567
-      --wsrep-node-name=node2
+      --wsrep-node-name=prd2
       --wsrep-node-address=${HOST2_IP}
-      --wsrep-sst-method=rsync
+      --wsrep-sst-method=mariabackup
       --wsrep-sst-auth="${SST_USER}:${SST_PASSWORD}"
       --binlog-format=ROW
       --default-storage-engine=InnoDB
@@ -44,11 +44,7 @@ services:
       --bind-address=0.0.0.0
       
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+      disable: true
 
 volumes:
   mariadb_data:
