@@ -19,10 +19,10 @@ wsrep_cluster_name = "dcsautomation_galera_cluster"
 wsrep_cluster_address = "gcomm://10.87.2.22:4567,10.87.2.23:4567"
 
 # Galera Synchronization Configuration
-wsrep_sst_method = mariabackup
+wsrep_sst_method = rsync
 
 # Security settings for SST
-wsrep_sst_auth = "sst_user:hdazus1%frjp@AtD"
+wsrep_sst_auth = "sst_user:SstPassword123"
 
 # Galera Node Configuration - NODE 2 SPECIFIC
 wsrep_node_name = "prd2"
