@@ -6,28 +6,21 @@ services:
     container_name: mariadb-galera-node2
     hostname: mariadb-node2
     restart: unless-stopped
-    
+    network_mode: host
+
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
       MYSQL_USER: "${MYSQL_USER}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
-      
-    ports:
-      - "3306:3306"    # MySQL port
-      - "4567:4567"    # Galera replication port
-      - "4568:4568"    # Incremental State Transfer port
-      - "4444:4444"    # State Snapshot Transfer port
-      
+      MARIADB_GALERA_CLUSTER_BOOTSTRAP: "${BOOTSTRAP_NODE2:-no}"
+      TZ: "${TZ}"
+
     volumes:
       - mariadb_data:/var/lib/mysql
       - /data/docker_configs/mariadb_galera/conf/galera-prd2.cnf:/etc/mysql/conf.d/galera.cnf:ro
       - /data/docker_configs/mariadb_galera/init-scripts:/docker-entrypoint-initdb.d:ro
       - mariadb_logs:/var/log/mysql
-      
-    networks:
-      galera_network:
-        ipv4_address: "${NODE2_IP}"
         
     command: >
       --wsrep-on=ON
@@ -36,7 +29,7 @@ services:
       --wsrep-cluster-address=gcomm://${HOST1_IP}:4567,${HOST2_IP}:4567
       --wsrep-node-name=prd2
       --wsrep-node-address=${HOST2_IP}
-      --wsrep-sst-method=mariabackup
+      --wsrep-sst-method=rsync
       --wsrep-sst-auth="${SST_USER}:${SST_PASSWORD}"
       --binlog-format=ROW
       --default-storage-engine=InnoDB
@@ -51,11 +44,3 @@ volumes:
     driver: local
   mariadb_logs:
     driver: local
-
-networks:
-  galera_network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: "${GALERA_SUBNET}"
-          gateway: "${GALERA_GATEWAY}"

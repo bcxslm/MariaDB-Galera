@@ -13,7 +13,6 @@ services:
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
       MYSQL_USER: "${MYSQL_USER}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
-      MARIADB_GALERA_CLUSTER_BOOTSTRAP: "${BOOTSTRAP_NODE1:-no}"
       TZ: "${TZ}"
 
     volumes:
@@ -23,13 +22,14 @@ services:
       - mariadb_logs:/var/log/mysql
         
     command: >
+      --wsrep-new-cluster
       --wsrep-on=ON
       --wsrep-provider=/usr/lib/galera/libgalera_smm.so
       --wsrep-cluster-name="${CLUSTER_NAME}"
       --wsrep-cluster-address=gcomm://${HOST1_IP}:4567,${HOST2_IP}:4567
       --wsrep-node-name=prd1
       --wsrep-node-address=${HOST1_IP}
-      --wsrep-sst-method=mariabackup
+      --wsrep-sst-method=rsync
       --wsrep-sst-auth="${SST_USER}:${SST_PASSWORD}"
       --binlog-format=ROW
       --default-storage-engine=InnoDB
@@ -44,3 +44,4 @@ volumes:
     driver: local
   mariadb_logs:
     driver: local
+
