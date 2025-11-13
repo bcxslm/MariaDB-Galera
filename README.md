@@ -192,6 +192,65 @@ chmod +x generate-init-scripts.sh
 ./deploy-to-servers.sh
 ```
 
+## Using with Portainer (Smart Bootstrap)
+
+The compose files support **smart bootstrap mode** using environment variables, making them safe for Portainer and automated patching.
+
+### Bootstrap Configuration
+
+The compose files check if `BOOTSTRAP_NODE1` or `BOOTSTRAP_NODE2` equals `"yes"`:
+- **`BOOTSTRAP_NODE1=yes`**: Enables bootstrap mode (creates new cluster)
+- **`BOOTSTRAP_NODE1` unset, empty, or any other value**: Normal mode (joins existing cluster)
+
+⚠️ **Critical:** After initial deployment, you **must** remove `BOOTSTRAP_NODE1` or set it to empty/any value other than "yes" to prevent split-brain scenarios during reboots.
+
+### Initial Deployment
+
+**1. Deploy Host 1 (Bootstrap Node)**
+- In Portainer, create a stack with `docker-compose-host1.yml`
+- Set environment variables (see `.env.example`)
+- Set `BOOTSTRAP_NODE1=yes`
+- Deploy and wait for initialization
+
+**2. Deploy Host 2 (Join Node)**
+- Create a stack with `docker-compose-host2.yml`
+- Use same environment variables as Host 1
+- Leave `BOOTSTRAP_NODE2` unset or empty (do NOT add it to environment variables)
+- Deploy (will automatically join cluster)
+
+**3. Disable Bootstrap on Host 1 (REQUIRED!)**
+- Go to Portainer → Stacks → Host 1 Stack → Environment variables
+- Either **remove** `BOOTSTRAP_NODE1` entirely, or change it to empty value
+- Update the stack
+
+✅ Cluster is now safe for automated patching and reboots.
+
+### Why Disable Bootstrap?
+
+If `BOOTSTRAP_NODE1=yes` remains after deployment:
+- Node 1 reboots → Creates **new** cluster (ignores Node 2) → **Split-brain!** 💥
+
+With `BOOTSTRAP_NODE1` removed or empty:
+- Node 1 reboots → Rejoins existing cluster → **Safe!** ✅
+
+### Disaster Recovery
+
+If both nodes are down:
+
+1. Determine which node has most recent data
+2. In Portainer, set that node's `BOOTSTRAP_NODE1=yes` (or `BOOTSTRAP_NODE2=yes`)
+3. Update and start that stack
+4. Start the other node (will sync from bootstrap node)
+5. **IMPORTANT:** Remove the bootstrap variable or set to empty
+
+### Best Practices
+
+- ✅ Always remove bootstrap variable or set to empty after initial deployment
+- ✅ Only use `BOOTSTRAP_NODE=yes` for initial deployment or disaster recovery
+- ✅ Immediately remove or set to empty after recovery
+- ✅ Stagger automated patching (never reboot both nodes simultaneously)
+- ✅ Verify bootstrap status: `docker inspect mariadb-galera-node1 | grep wsrep-new-cluster` (should return nothing)
+
 ## Next Steps
 
 1. Configure SSL/TLS encryption
