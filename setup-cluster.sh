@@ -172,6 +172,7 @@ deploy_to_server() {
     # Set proper permissions
     echo "Setting permissions on $server_name..."
     ssh "$SSH_USER@$server_ip" "cd $WORKDIR && \
+                         chown -R 999:999 data logs init-scripts conf && \
                          chmod 640 conf/*.cnf .env && \
                          chmod 644 docker-compose*.yml && \
                          chmod 640 init-scripts/*.sql && \
@@ -235,6 +236,7 @@ else
     echo "Manual deployment instructions:"
     echo
     echo "Next steps for your environment:"
+    echo "0. Set selinux to permissive: setenforce 0"
     echo "1. Copy files to $HOST1_IP:$WORKDIR/"
     echo "   - docker-compose-host1.yml, galera-prd1.cnf, .env, init-scripts/"
     echo "2. Copy files to $HOST2_IP:$WORKDIR/"
