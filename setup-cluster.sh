@@ -76,17 +76,17 @@ source .env
 SST_USER=${SST_USER:-sst_user}
 SST_PASSWORD=${SST_PASSWORD:-sst_password}
 
-# Update galera-node1.cnf
-sed -i "s/HOST1_IP/$HOST1_IP/g" galera-node1.cnf
-sed -i "s/HOST2_IP/$HOST2_IP/g" galera-node1.cnf
-sed -i "s/SST_USER_PLACEHOLDER/$SST_USER/g" galera-node1.cnf
-sed -i "s/SST_PASSWORD_PLACEHOLDER/$SST_PASSWORD/g" galera-node1.cnf
+# Update galera-prd1.cnf
+sed -i "s/HOST1_IP/$HOST1_IP/g" galera-prd1.cnf
+sed -i "s/HOST2_IP/$HOST2_IP/g" galera-prd1.cnf
+sed -i "s/SST_USER_PLACEHOLDER/$SST_USER/g" galera-prd1.cnf
+sed -i "s/SST_PASSWORD_PLACEHOLDER/$SST_PASSWORD/g" galera-prd1.cnf
 
-# Update galera-node2.cnf
-sed -i "s/HOST1_IP/$HOST1_IP/g" galera-node2.cnf
-sed -i "s/HOST2_IP/$HOST2_IP/g" galera-node2.cnf
-sed -i "s/SST_USER_PLACEHOLDER/$SST_USER/g" galera-node2.cnf
-sed -i "s/SST_PASSWORD_PLACEHOLDER/$SST_PASSWORD/g" galera-node2.cnf
+# Update galera-prd2.cnf
+sed -i "s/HOST1_IP/$HOST1_IP/g" galera-prd2.cnf
+sed -i "s/HOST2_IP/$HOST2_IP/g" galera-prd2.cnf
+sed -i "s/SST_USER_PLACEHOLDER/$SST_USER/g" galera-prd2.cnf
+sed -i "s/SST_PASSWORD_PLACEHOLDER/$SST_PASSWORD/g" galera-prd2.cnf
 
 # Update docker-compose files
 sed -i "s/HOST1_IP/$HOST1_IP/g" docker-compose-host1.yml

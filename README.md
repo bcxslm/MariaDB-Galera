@@ -31,8 +31,8 @@ MariaDB/clustering/
 ├── docker-compose-host1.yml    # Docker Compose for Host 1 (Primary)
 ├── docker-compose-host2.yml    # Docker Compose for Host 2 (Secondary)
 ├── galera.cnf                  # Base Galera configuration
-├── galera-node1.cnf            # Node 1 specific configuration
-├── galera-node2.cnf            # Node 2 specific configuration
+├── galera-prd1.cnf            # Node 1 specific configuration
+├── galera-prd2.cnf            # Node 2 specific configuration
 ├── .env.example                # Environment variables template
 ├── init-scripts/               # Database initialization scripts
 │   ├── 01-create-sst-user.sql.template  # SST user creation template
@@ -70,8 +70,8 @@ HOST2_IP=192.168.1.101  # Your Host 2 IP
 ### Step 2: Update Configuration Files
 
 Replace `HOST1_IP` and `HOST2_IP` placeholders in:
-- `galera-node1.cnf`
-- `galera-node2.cnf`
+- `galera-prd1.cnf`
+- `galera-prd2.cnf`
 
 ### Step 3: Start the Cluster
 
