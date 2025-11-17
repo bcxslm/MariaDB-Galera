@@ -15,8 +15,8 @@ services:
 
     volumes:
       - mariadb_data:/var/lib/mysql
-      - /data/docker_configs/mariadb_galera/conf/galera-prd1.cnf:/etc/mysql/conf.d/galera.cnf:ro
-      - /data/docker_configs/mariadb_galera/init-scripts:/docker-entrypoint-initdb.d:ro
+      - ./conf/galera-prd1.cnf:/etc/mysql/conf.d/galera.cnf:ro
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
       - mariadb_logs:/var/log/mysql
 
     # Smart bootstrap: Uses --wsrep-new-cluster ONLY if BOOTSTRAP_NODE1=yes

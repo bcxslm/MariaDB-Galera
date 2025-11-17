@@ -8,6 +8,18 @@ set -e
 echo "=== MariaDB Galera Cluster Setup ==="
 echo
 
+# Configuration - Working directory on remote servers
+WORKDIR="/opt/mariadb_galera"
+SSH_USER="${SSH_USER:-root}"
+
+# Use docker or podman?
+read -p "Use docker or podman? (docker/podman): " container_engine
+if [[ $container_engine == "podman" ]]; then
+    COMPOSE_EXEC="podman-compose"
+else
+    COMPOSE_EXEC="docker compose"
+fi
+
 # Function to validate IP address
 validate_ip() {
     local ip=$1
@@ -111,18 +123,133 @@ chmod +x generate-init-scripts.sh
 echo
 echo "✅ Configuration files updated successfully!"
 echo
-echo "Next steps for your environment:"
-echo "1. Copy files to srv042036:/data/docker_configs/mariadb_galera/"
-echo "   - docker-compose-host1.yml, galera-prd1.cnf, .env, init-scripts/"
-echo "2. Copy files to srv042037:/data/docker_configs/mariadb_galera/"
-echo "   - docker-compose-host2.yml, galera-prd2.cnf, .env, init-scripts/"
-echo "3. On srv042036, run: docker compose -f docker-compose-host1.yml up -d"
-echo "4. Wait for srv042036 to fully initialize"
-echo "5. On srv042037, run: docker compose -f docker-compose-host2.yml up -d"
+
+# Function to deploy files to a server
+deploy_to_server() {
+    local server_ip=$1
+    local server_name=$2
+    local compose_file=$3
+    local config_file=$4
+
+    echo "Deploying to $server_name ($server_ip)..."
+
+    # Check if we can connect to the server
+    if ! ping -c 1 "$server_ip" &> /dev/null; then
+        echo "⚠️  Warning: Cannot ping $server_ip. Please ensure the server is accessible."
+        read -p "Continue anyway? (y/n): " continue_deploy
+        if [[ $continue_deploy != [yY] ]]; then
+            return 1
+        fi
+    fi
+
+    # Create directory structure on remote server
+    echo "Creating directory structure on $server_name..."
+    ssh "$SSH_USER@$server_ip" "mkdir -p $WORKDIR/{init-scripts,logs,data} && \
+                         chmod -R 750 $WORKDIR" || {
+        echo "❌ Failed to create directories on $server_name"
+        return 1
+    }
+
+    # Copy files to server
+    echo "Copying files to $server_name..."
+    scp "$compose_file" "$SSH_USER@$server_ip:$WORKDIR/" || {
+        echo "❌ Failed to copy docker-compose file to $server_name"
+        return 1
+    }
+    scp "$config_file" "$SSH_USER@$server_ip:$WORKDIR/" || {
+        echo "❌ Failed to copy config file to $server_name"
+        return 1
+    }
+    scp .env "$SSH_USER@$server_ip:$WORKDIR/" || {
+        echo "❌ Failed to copy .env file to $server_name"
+        return 1
+    }
+    scp -r init-scripts "$SSH_USER@$server_ip:$WORKDIR/" || {
+        echo "❌ Failed to copy init-scripts to $server_name"
+        return 1
+    }
+
+    # Set proper permissions
+    echo "Setting permissions on $server_name..."
+    ssh "$SSH_USER@$server_ip" "cd $WORKDIR && \
+                         chmod 640 *.cnf .env && \
+                         chmod 644 docker-compose-*.yml && \
+                         chmod 640 init-scripts/*.sql && \
+                         chmod 750 init-scripts" || {
+        echo "⚠️  Warning: Failed to set some permissions on $server_name"
+    }
+
+    echo "✅ Deployment to $server_name completed!"
+    return 0
+}
+
+# Ask if user wants to deploy automatically
+echo "Do you want to automatically deploy files to the servers via SCP?"
+echo "This requires:"
+echo "1. SSH access to both servers as user '$SSH_USER'"
+echo "2. Write access to $WORKDIR directory"
+echo "3. SSH key authentication (recommended)"
 echo
-echo "To verify the cluster is working:"
-echo "docker exec -it mariadb-galera-prd1 mysql -u root -p -e \"SHOW STATUS LIKE 'wsrep_cluster_size';\""
+echo "Working directory on servers: $WORKDIR"
 echo
-echo "The cluster size should show '2' when both nodes are connected."
+
+read -p "Deploy automatically? (y/n): " auto_deploy
+
+if [[ $auto_deploy == [yY] ]]; then
+    echo
+    echo "Starting automatic deployment..."
+    echo
+
+    # Deploy to Host 1
+    if deploy_to_server "$HOST1_IP" "Host1" "docker-compose-host1.yml" "galera-prd1.cnf"; then
+        echo
+        echo "✅ Host 1 deployment successful!"
+        echo "To start the primary node on Host 1:"
+        echo "ssh $SSH_USER@$HOST1_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose-host1.yml up -d'"
+    else
+        echo "❌ Host 1 deployment failed!"
+    fi
+
+    echo "Pausing for 10 seconds before deploying to Host 2..."
+    sleep 10
+
+    # Deploy to Host 2
+    if deploy_to_server "$HOST2_IP" "Host2" "docker-compose-host2.yml" "galera-prd2.cnf"; then
+        echo
+        echo "✅ Host 2 deployment successful!"
+        echo "To start the secondary node on Host 2 (after primary is running):"
+        echo "ssh $SSH_USER@$HOST2_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose-host2.yml up -d'"
+    else
+        echo "❌ Host 2 deployment failed!"
+    fi
+
+    echo
+    echo "Next steps after deployment:"
+    echo "1. Start primary node: ssh $SSH_USER@$HOST1_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose-host1.yml up -d'"
+    echo "2. Wait for primary to initialize (check logs)"
+    echo "3. Start secondary node: ssh $SSH_USER@$HOST2_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose-host2.yml up -d'"
+    echo "4. Verify cluster: ssh $SSH_USER@$HOST1_IP 'docker exec -it mariadb-galera-prd1 mysql -u root -p -e \"SHOW STATUS LIKE \\\"wsrep_cluster_size\\\";\"'"
+
+else
+    echo
+    echo "Manual deployment instructions:"
+    echo
+    echo "Next steps for your environment:"
+    echo "1. Copy files to $HOST1_IP:$WORKDIR/"
+    echo "   - docker-compose-host1.yml, galera-prd1.cnf, .env, init-scripts/"
+    echo "2. Copy files to $HOST2_IP:$WORKDIR/"
+    echo "   - docker-compose-host2.yml, galera-prd2.cnf, .env, init-scripts/"
+    echo "3. On Host 1, run: $COMPOSE_EXEC -f docker-compose-host1.yml up -d"
+    echo "4. Wait for Host 1 to fully initialize"
+    echo "5. On Host 2, run: $COMPOSE_EXEC -f docker-compose-host2.yml up -d"
+    echo
+    echo "To verify the cluster is working:"
+    echo "docker exec -it mariadb-galera-prd1 mysql -u root -p -e \"SHOW STATUS LIKE 'wsrep_cluster_size';\""
+    echo
+    echo "The cluster size should show '2' when both nodes are connected."
+fi
+
 echo
 echo "See DEPLOYMENT.md for detailed deployment instructions."
+echo
+echo "🎉 Setup complete!"
