@@ -16,10 +16,10 @@ services:
       TZ: "${TZ}"
 
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - ./data:/var/lib/mysql
       - ./conf/galera-prd1.cnf:/etc/mysql/conf.d/galera.cnf:ro
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
-      - mariadb_logs:/var/log/mysql
+      - ./logs:/var/log/mysql
 
     # Smart bootstrap: Uses --wsrep-new-cluster ONLY if BOOTSTRAP_NODE1=yes
     # For initial deployment: Set BOOTSTRAP_NODE1=yes in .env
@@ -62,9 +62,3 @@ services:
 
     healthcheck:
       disable: true
-
-volumes:
-  mariadb_data:
-    driver: local
-  mariadb_logs:
-    driver: local

@@ -144,7 +144,7 @@ deploy_to_server() {
 
     # Create directory structure on remote server
     echo "Creating directory structure on $server_name..."
-    ssh "$SSH_USER@$server_ip" "mkdir -p $WORKDIR/{init-scripts,logs,data} && \
+    ssh "$SSH_USER@$server_ip" "mkdir -p $WORKDIR/{init-scripts,logs,data,conf} && \
                          chmod -R 750 $WORKDIR" || {
         echo "❌ Failed to create directories on $server_name"
         return 1
@@ -152,11 +152,11 @@ deploy_to_server() {
 
     # Copy files to server
     echo "Copying files to $server_name..."
-    scp "$compose_file" "$SSH_USER@$server_ip:$WORKDIR/" || {
+    scp "$compose_file" "$SSH_USER@$server_ip:$WORKDIR/docker-compose.yml" || {
         echo "❌ Failed to copy docker-compose file to $server_name"
         return 1
     }
-    scp "$config_file" "$SSH_USER@$server_ip:$WORKDIR/" || {
+    scp "$config_file" "$SSH_USER@$server_ip:$WORKDIR/conf" || {
         echo "❌ Failed to copy config file to $server_name"
         return 1
     }
@@ -172,8 +172,8 @@ deploy_to_server() {
     # Set proper permissions
     echo "Setting permissions on $server_name..."
     ssh "$SSH_USER@$server_ip" "cd $WORKDIR && \
-                         chmod 640 *.cnf .env && \
-                         chmod 644 docker-compose-*.yml && \
+                         chmod 640 conf/*.cnf .env && \
+                         chmod 644 docker-compose*.yml && \
                          chmod 640 init-scripts/*.sql && \
                          chmod 750 init-scripts" || {
         echo "⚠️  Warning: Failed to set some permissions on $server_name"
@@ -205,7 +205,7 @@ if [[ $auto_deploy == [yY] ]]; then
         echo
         echo "✅ Host 1 deployment successful!"
         echo "To start the primary node on Host 1:"
-        echo "ssh $SSH_USER@$HOST1_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose-host1.yml up -d'"
+        echo "ssh $SSH_USER@$HOST1_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose.yml up -d'"
     else
         echo "❌ Host 1 deployment failed!"
     fi
@@ -218,16 +218,16 @@ if [[ $auto_deploy == [yY] ]]; then
         echo
         echo "✅ Host 2 deployment successful!"
         echo "To start the secondary node on Host 2 (after primary is running):"
-        echo "ssh $SSH_USER@$HOST2_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose-host2.yml up -d'"
+        echo "ssh $SSH_USER@$HOST2_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose.yml up -d'"
     else
         echo "❌ Host 2 deployment failed!"
     fi
 
     echo
     echo "Next steps after deployment:"
-    echo "1. Start primary node: ssh $SSH_USER@$HOST1_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose-host1.yml up -d'"
+    echo "1. Start primary node: ssh $SSH_USER@$HOST1_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose.yml up -d'"
     echo "2. Wait for primary to initialize (check logs)"
-    echo "3. Start secondary node: ssh $SSH_USER@$HOST2_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose-host2.yml up -d'"
+    echo "3. Start secondary node: ssh $SSH_USER@$HOST2_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose.yml up -d'"
     echo "4. Verify cluster: ssh $SSH_USER@$HOST1_IP 'docker exec -it mariadb-galera-prd1 mysql -u root -p -e \"SHOW STATUS LIKE \\\"wsrep_cluster_size\\\";\"'"
 
 else

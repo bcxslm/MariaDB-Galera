@@ -21,10 +21,10 @@ services:
       - "4444:4444"    # State Snapshot Transfer port
 
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - ./data:/var/lib/mysql
       - ./conf/galera-prd2.cnf:/etc/mysql/conf.d/galera.cnf:ro
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
-      - mariadb_logs:/var/log/mysql
+      - ./logs:/var/log/mysql
 
     networks:
       galera_network:
@@ -71,10 +71,3 @@ services:
       
     healthcheck:
       disable: true
-
-volumes:
-  mariadb_data:
-    driver: local
-  mariadb_logs:
-    driver: local
-
