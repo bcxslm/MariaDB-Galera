@@ -22,7 +22,7 @@ COMPOSE_DEFAULT="docker compose"
 
 generate_password() {
     # 20 chars with symbols, letters, digits
-    LC_ALL=C tr -dc 'A-Za-z0-9-_= </dev/urandom | head -c 16 || echo "P@ssw0rdi23hsb78go"
+    LC_ALL=C tr -dc 'A-Za-z0-9-_=' </dev/urandom | head -c 16 || echo "P@ssw0rdi23hsb78go"
 }
 
 # Create .env file if it doesn't exist
