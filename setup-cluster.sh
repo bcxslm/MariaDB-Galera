@@ -233,8 +233,8 @@ if [[ $auto_deploy == [yY] ]]; then
     fi
 
     info "Remove bootstrap flag from both nodes after initial startup:"
-    info "ssh $SSH_USER@$HOST1_IP 'sed -i \"s/BOOTSTRAP_NODE1=yes/BOOTSTRAP_NODE1=/\" .env'"
-    info "ssh $SSH_USER@$HOST2_IP 'sed -i \"s/BOOTSTRAP_NODE2=yes/BOOTSTRAP_NODE2=/\" .env'"
+    info "ssh $SSH_USER@$HOST1_IP 'cd $WORKDIR && sed -i \"s/BOOTSTRAP_NODE1=yes/BOOTSTRAP_NODE1=/\" .env'"
+    info "ssh $SSH_USER@$HOST2_IP 'cd $WORKDIR && sed -i \"s/BOOTSTRAP_NODE2=yes/BOOTSTRAP_NODE2=/\" .env'"
     ssh $SSH_USER@$HOST1_IP "cd $WORKDIR && sed -i 's/BOOTSTRAP_NODE1=yes/BOOTSTRAP_NODE1=/' .env"
     ssh $SSH_USER@$HOST2_IP "cd $WORKDIR && sed -i 's/BOOTSTRAP_NODE2=yes/BOOTSTRAP_NODE2=/' .env"
 
@@ -242,7 +242,7 @@ if [[ $auto_deploy == [yY] ]]; then
     info "1. Start primary node: ssh $SSH_USER@$HOST1_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose.yml up -d'"
     info "2. Wait for primary to initialize (check logs)"
     info "3. Start secondary node: ssh $SSH_USER@$HOST2_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose.yml up -d'"
-    info "4. Verify cluster: ssh $SSH_USER@$HOST1_IP 'docker exec -it mariadb-galera-prd1 mysql -u root -p -e \"SHOW STATUS LIKE \\\"wsrep_cluster_size\\\";\"'"
+    info "4. Verify cluster: ssh $SSH_USER@$HOST1_IP 'docker exec -it mariadb-galera-prd1 mysql -u mariadb -p -e \"SHOW STATUS LIKE \\\"wsrep_cluster_size\\\";\"'"
 
 else
     info "Manual deployment instructions:"
@@ -256,7 +256,7 @@ else
     info "4. Wait for Host 1 to fully initialize"
     info "5. On Host 2, run: $COMPOSE_EXEC -f docker-compose-host2.yml up -d"
     info "To verify the cluster is working:"
-    info "$COMPOSE_EXEC exec -it mariadb-galera-prd1 mysql -u root -p -e \"SHOW STATUS LIKE 'wsrep_cluster_size';\""
+    info "$COMPOSE_EXEC exec -it mariadb-galera-prd1 mysql -u mariadb -p -e \"SHOW STATUS LIKE 'wsrep_cluster_size';\""
     info "The cluster size should show '2' when both nodes are connected."
     info "Remove bootstrap flag from both nodes after initial startup:"
     info "sed -i 's/BOOTSTRAP_NODE1=yes/BOOTSTRAP_NODE1=/' .env"

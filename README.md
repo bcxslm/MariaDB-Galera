@@ -30,16 +30,18 @@ Host 1 (192.168.1.100)          Host 2 (192.168.1.101)
 MariaDB/clustering/
 ├── docker-compose-host1.yml    # Docker Compose for Host 1 (Primary)
 ├── docker-compose-host2.yml    # Docker Compose for Host 2 (Secondary)
-├── galera.cnf                  # Base Galera configuration
-├── galera-prd1.cnf            # Node 1 specific configuration
-├── galera-prd2.cnf            # Node 2 specific configuration
+├── galera-prd1.cnf             # Node 1 specific configuration
+├── galera-prd2.cnf             # Node 2 specific configuration
 ├── .env.example                # Environment variables template
 ├── init-scripts/               # Database initialization scripts
 │   ├── 01-create-sst-user.sql.template  # SST user creation template
 │   ├── 01-create-sst-user.sql  # Generated SST user creation (after setup)
 │   └── 02-create-test-data.sql # Test data for verification
 ├── generate-init-scripts.sh    # Script to generate SQL from templates
-└── README.md                   # This file
+├── README.md                   # This file
+|── setup-cluster.sh            # Automated setup script
+├── test-cluster.sh             # Test cluster connectivity
+└── RECOVERY.md                 # Recovery guide
 ```
 
 ## Prerequisites
@@ -51,46 +53,18 @@ MariaDB/clustering/
 
 ## Quick Start
 
-### Step 1: Prepare Configuration
+### Step 1: Run Setup Script
 
-1. Copy the clustering directory to both hosts
-2. Copy `.env.example` to `.env` on both hosts
-3. Edit `.env` files with your actual IP addresses:
-
-```bash
-# On Host 1
-HOST1_IP=192.168.1.100  # Your Host 1 IP
-HOST2_IP=192.168.1.101  # Your Host 2 IP
-
-# On Host 2 (same values)
-HOST1_IP=192.168.1.100  # Your Host 1 IP  
-HOST2_IP=192.168.1.101  # Your Host 2 IP
+```
+bash setup-cluster.sh
 ```
 
-### Step 2: Update Configuration Files
-
-Replace `HOST1_IP` and `HOST2_IP` placeholders in:
-- `galera-prd1.cnf`
-- `galera-prd2.cnf`
-
-### Step 3: Start the Cluster
-
-**On Host 1 (Primary node):**
-```bash
-docker compose -f docker-compose-host1.yml up -d
-```
-
-**Wait for Host 1 to be fully initialized, then on Host 2:**
-```bash
-docker compose -f docker-compose-host2.yml up -d
-```
-
-### Step 4: Verify Cluster Status
+### Step 2: Verify Cluster Status
 
 Connect to any node and check cluster status:
 ```bash
 # Check cluster status
-docker exec -it mariadb-galera-node1 mysql -u root -p -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+docker exec -it mariadb-galera-node1 mysql -u mariadb -p -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
 
 # Or run the test script
 chmod +x test-cluster.sh
