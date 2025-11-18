@@ -20,6 +20,11 @@ WORKDIR="/opt/mariadb_galera"
 SSH_USER="${SSH_USER:-root}"
 COMPOSE_DEFAULT="docker compose"
 
+generate_password() {
+    # 20 chars with symbols, letters, digits
+    LC_ALL=C tr -dc 'A-Za-z0-9-_= </dev/urandom | head -c 16 || echo "P@ssw0rdi23hsb78go"
+}
+
 # Create .env file if it doesn't exist
 if [ ! -f .env ]; then
     cp .env.example .env
@@ -27,6 +32,13 @@ if [ ! -f .env ]; then
     echo "SSH_USER=$SSH_USER" >> .env
     ok "Created .env file with your IP addresses."
 fi
+
+read -p "The cluster name [default: galera_cluster]: " CLUSTER_NAME
+read -p "The root password [default: random]: " MYSQL_ROOT_PASSWORD
+read -p "The database user [default: galera_user]: " MYSQL_USER
+read -p "The database user password [default: random]: " MYSQL_PASSWORD
+read -p "The database name [default: test]: " MYSQL_DATABASE
+
 
 # Use docker or podman?
 read -p "Use docker or podman? (docker/podman)[default: docker]: " container_engine
@@ -91,7 +103,25 @@ while true; do
     fi
 done
 
+# Set default values if not provided in .env
+CLUSTER_NAME=${CLUSTER_NAME:-galera_cluster}
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-$(generate_password)}
+MYSQL_USER=${MYSQL_USER:-galera_cluster}
+MYSQL_PASSWORD=${MYSQL_PASSWORD:-$(generate_password)}
+MYSQL_DATABASE=${MYSQL_DATABASE:-test}
+SST_PASSWORD=${SST_PASSWORD:-$(generate_password)}
+MONITOR_PASSWORD=${MONITOR_PASSWORD:-$(generate_password)}
+REPL_PASSWORD=${REPL_PASSWORD:-$(generate_password)}
+
 info "Configuration Summary:"
+echo "Cluster Name: $CLUSTER_NAME"
+echo "Root Password: $MYSQL_ROOT_PASSWORD"
+echo "Database User: $MYSQL_USER"
+echo "Database Password: $MYSQL_PASSWORD"
+echo "Database Name: $MYSQL_DATABASE"
+echo "SST Password: $SST_PASSWORD"
+echo "Monitor Password: $MONITOR_PASSWORD"
+echo "Replication Password: $REPL_PASSWORD"
 echo "Host 1 IP: $HOST1_IP"
 echo "Host 2 IP: $HOST2_IP"
 
@@ -102,26 +132,16 @@ if [[ $confirm != [yY] ]]; then
 fi
 
 info "Updating configuration files..."
-
-# Set default values if not provided in .env
-SST_USER=${SST_USER:-sst_user}
-SST_PASSWORD=${SST_PASSWORD:-sst_password}
-
-# Update galera-prd1.cnf
-sed -i "s/HOST1_IP/$HOST1_IP/g" galera-prd1.cnf
-sed -i "s/HOST2_IP/$HOST2_IP/g" galera-prd1.cnf
-sed -i "s/SST_USER_PLACEHOLDER/$SST_USER/g" galera-prd1.cnf
-sed -i "s/SST_PASSWORD_PLACEHOLDER/$SST_PASSWORD/g" galera-prd1.cnf
-
-# Update galera-prd2.cnf
-sed -i "s/HOST1_IP/$HOST1_IP/g" galera-prd2.cnf
-sed -i "s/HOST2_IP/$HOST2_IP/g" galera-prd2.cnf
-sed -i "s/SST_USER_PLACEHOLDER/$SST_USER/g" galera-prd2.cnf
-sed -i "s/SST_PASSWORD_PLACEHOLDER/$SST_PASSWORD/g" galera-prd2.cnf
-
-# Update .env file with IP addresses
-sed -i "s/192.168.1.100/$HOST1_IP/g" .env
-sed -i "s/192.168.1.101/$HOST2_IP/g" .env
+sed -i "s/__CLUSTER_NAME_PLACEHOLDER__/$CLUSTER_NAME/g" .env
+sed -i "s/__MYSQL_ROOT_PASSWORD_PLACEHOLDER__/$MYSQL_ROOT_PASSWORD/g" .env
+sed -i "s/__MYSQL_USER_PLACEHOLDER__/$MYSQL_USER/g" .env
+sed -i "s/__MYSQL_PASSWORD_PLACEHOLDER__/$MYSQL_PASSWORD/g" .env
+sed -i "s/__MYSQL_DATABASE_PLACEHOLDER__/$MYSQL_DATABASE/g" .env
+sed -i "s/__SST_PASSWORD_PLACEHOLDER__/$SST_PASSWORD/g" .env
+sed -i "s/__MONITOR_PASSWORD_PLACEHOLDER__/$MONITOR_PASSWORD/g" .env
+sed -i "s/__REPL_PASSWORD_PLACEHOLDER__/$REPL_PASSWORD/g" .env
+sed -i "s/__HOST1_IP_PLACEHOLDER__/$HOST1_IP/g" .env
+sed -i "s/__HOST2_IP_PLACEHOLDER__/$HOST2_IP/g" .env
 ok "✅ Updated .env file with IP addresses."
 
 # Source .env file to get credentials

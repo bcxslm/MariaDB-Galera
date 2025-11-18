@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mariadb-node1:
     image: mariadb:lts
@@ -9,11 +7,11 @@ services:
     network_mode: host
 
     environment:
+      TZ: "${TZ}"
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
       MYSQL_USER: "${MYSQL_USER}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
-      TZ: "${TZ}"
 
     volumes:
       - ./data:/var/lib/mysql
@@ -21,44 +19,25 @@ services:
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
       - ./logs:/var/log/mysql
 
-    # Smart bootstrap: Uses --wsrep-new-cluster ONLY if BOOTSTRAP_NODE1=yes
-    # For initial deployment: Set BOOTSTRAP_NODE1=yes in .env
-    # After cluster is running: Remove BOOTSTRAP_NODE1 or set to empty in Portainer environment variables
-    # Safe for reboots when BOOTSTRAP_NODE1 is unset or empty
     command:
       - bash
       - -c
       - |
         if [ "$BOOTSTRAP_NODE1" = "yes" ]; then
+          echo "### Starting NEW Galera cluster (bootstrap node) ###"
           exec docker-entrypoint.sh mariadbd \
             --wsrep-new-cluster \
-            --wsrep-on=ON \
-            --wsrep-provider=/usr/lib/galera/libgalera_smm.so \
-            --wsrep-cluster-name="$CLUSTER_NAME" \
-            --wsrep-cluster-address=gcomm://$HOST1_IP:4567,$HOST2_IP:4567 \
-            --wsrep-node-name=prd1 \
-            --wsrep-node-address=$HOST1_IP \
-            --wsrep-sst-method=rsync \
-            --wsrep-sst-auth="$SST_USER:$SST_PASSWORD" \
-            --binlog-format=ROW \
-            --default-storage-engine=InnoDB \
-            --innodb-autoinc-lock-mode=2 \
-            --bind-address=0.0.0.0
+            --wsrep_cluster_name="$CLUSTER_NAME" \
+            --wsrep_cluster_address="gcomm://$HOST1_IP:4567,$HOST2_IP:4567" \
+            --wsrep_node_name="prd1" \
+            --wsrep_node_address="$HOST1_IP" \
+            --wsrep_sst_auth="$SST_USER:$SST_PASSWORD"
         else
+          echo "### Joining existing Galera cluster ###"
           exec docker-entrypoint.sh mariadbd \
-            --wsrep-on=ON \
-            --wsrep-provider=/usr/lib/galera/libgalera_smm.so \
-            --wsrep-cluster-name="$CLUSTER_NAME" \
-            --wsrep-cluster-address=gcomm://$HOST1_IP:4567,$HOST2_IP:4567 \
-            --wsrep-node-name=prd1 \
-            --wsrep-node-address=$HOST1_IP \
-            --wsrep-sst-method=rsync \
-            --wsrep-sst-auth="$SST_USER:$SST_PASSWORD" \
-            --binlog-format=ROW \
-            --default-storage-engine=InnoDB \
-            --innodb-autoinc-lock-mode=2 \
-            --bind-address=0.0.0.0
+            --wsrep_cluster_name="$CLUSTER_NAME" \
+            --wsrep_cluster_address="gcomm://$HOST1_IP:4567,$HOST2_IP:4567" \
+            --wsrep_node_name="prd1" \
+            --wsrep_node_address="$HOST1_IP" \
+            --wsrep_sst_auth="$SST_USER:$SST_PASSWORD"
         fi
-
-    healthcheck:
-      disable: true
