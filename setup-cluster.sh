@@ -235,8 +235,8 @@ if [[ $auto_deploy == [yY] ]]; then
     info "Remove bootstrap flag from both nodes after initial startup:"
     info "ssh $SSH_USER@$HOST1_IP 'sed -i \"s/BOOTSTRAP_NODE1=yes/BOOTSTRAP_NODE1=/\" .env'"
     info "ssh $SSH_USER@$HOST2_IP 'sed -i \"s/BOOTSTRAP_NODE2=yes/BOOTSTRAP_NODE2=/\" .env'"
-    ssh $SSH_USER@$HOST1_IP "sed -i 's/BOOTSTRAP_NODE1=yes/BOOTSTRAP_NODE1=/' .env"
-    ssh $SSH_USER@$HOST2_IP "sed -i 's/BOOTSTRAP_NODE2=yes/BOOTSTRAP_NODE2=/' .env"
+    ssh $SSH_USER@$HOST1_IP "cd $WORKDIR && sed -i 's/BOOTSTRAP_NODE1=yes/BOOTSTRAP_NODE1=/' .env"
+    ssh $SSH_USER@$HOST2_IP "cd $WORKDIR && sed -i 's/BOOTSTRAP_NODE2=yes/BOOTSTRAP_NODE2=/' .env"
 
     info "Next steps after deployment:"
     info "1. Start primary node: ssh $SSH_USER@$HOST1_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose.yml up -d'"
