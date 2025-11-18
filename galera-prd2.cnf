@@ -27,7 +27,7 @@ long_query_time = 2
 
 # Charset
 character-set-server = utf8mb4
-collation-server = utf8mb4_general_ci
+collation-server = utf8mb4_0900_ai_ci
 
 # Safety
 myisam-recover-options = BACKUP
