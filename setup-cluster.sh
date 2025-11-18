@@ -21,8 +21,7 @@ SSH_USER="${SSH_USER:-root}"
 COMPOSE_DEFAULT="docker compose"
 
 generate_password() {
-    # 20 chars with symbols, letters, digits
-    LC_ALL=C tr -dc 'A-Za-z0-9-_=' </dev/urandom | head -c 16 || echo "P@ssw0rdi23hsb78go"
+    LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16 || echo "Passw0rdi23hsb78go"
 }
 
 # Create .env file if it doesn't exist
@@ -122,6 +121,7 @@ echo "Database Name: $MYSQL_DATABASE"
 echo "SST Password: $SST_PASSWORD"
 echo "Monitor Password: $MONITOR_PASSWORD"
 echo "Replication Password: $REPL_PASSWORD"
+err "Please save the above credentials in a secure place! And they are in .env file."
 echo "Host 1 IP: $HOST1_IP"
 echo "Host 2 IP: $HOST2_IP"
 
