@@ -8,6 +8,7 @@ innodb_buffer_pool_size = 512M
 # Galera provider
 wsrep_on = ON
 wsrep_provider = /usr/lib/galera/libgalera_smm.so
+binlog_format = ROW
 
 # Switching ALL addresses to docker-compose, so comment them out here:
 # wsrep_cluster_address =
