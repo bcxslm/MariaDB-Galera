@@ -89,7 +89,7 @@ while true; do
     if validate_ip "$HOST1_IP"; then
         break
     else
-        err "Invalid IP address format. Please try again."
+        warn "Invalid IP address format. Please try again."
     fi
 done
 
@@ -98,7 +98,7 @@ while true; do
     if validate_ip "$HOST2_IP"; then
         break
     else
-        err "Invalid IP address format. Please try again."
+        warn "Invalid IP address format. Please try again."
     fi
 done
 
@@ -121,14 +121,13 @@ echo "Database Name: $MYSQL_DATABASE"
 echo "SST Password: $SST_PASSWORD"
 echo "Monitor Password: $MONITOR_PASSWORD"
 echo "Replication Password: $REPL_PASSWORD"
-err "Please save the above credentials in a secure place! And they are in .env file."
+warn "Please save the above credentials in a secure place! And they are in .env file."
 echo "Host 1 IP: $HOST1_IP"
 echo "Host 2 IP: $HOST2_IP"
 
 read -p "Is this correct? (y/n): " confirm
 if [[ $confirm != [yY] ]]; then
-    warn "Setup cancelled."
-    exit 1
+    err "Setup cancelled."
 fi
 
 info "Updating configuration files..."
