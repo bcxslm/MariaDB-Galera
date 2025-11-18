@@ -11,14 +11,29 @@ echo
 # Configuration - Working directory on remote servers
 WORKDIR="/opt/mariadb_galera"
 SSH_USER="${SSH_USER:-root}"
+COMPOSE_DEFAULT="docker compose"
 
 # Use docker or podman?
-read -p "Use docker or podman? (docker/podman): " container_engine
+read -p "Use docker or podman? (docker/podman)[default: docker]: " container_engine
 if [[ $container_engine == "podman" ]]; then
     COMPOSE_EXEC="podman-compose"
 else
-    COMPOSE_EXEC="docker compose"
+    COMPOSE_EXEC="$COMPOSE_DEFAULT"
 fi
+
+# Configure Bootstrap Flags
+read -p "Do you want to configure bootstrap flags? (y/n): " configure_bootstrap
+if [[ $configure_bootstrap == [yY] ]]; then
+    info "Configuring bootstrap flags..."
+    sed -i "s/^BOOTSTRAP_NODE1=.*/BOOTSTRAP_NODE1=yes/" .env
+    sed -i "s/^BOOTSTRAP_NODE2=.*/BOOTSTRAP_NODE2=/" .env
+    ok "Bootstrap flags set (Host1=yes, Host2 empty)"
+elif [[ $configure_bootstrap == [nN] ]]; then
+    info "Skipping bootstrap flag configuration..."
+    sed -i "s/^BOOTSTRAP_NODE1=.*/BOOTSTRAP_NODE1=/" .env
+    sed -i "s/^BOOTSTRAP_NODE2=.*/BOOTSTRAP_NODE2=/" .env
+fi
+
 
 # Function to validate IP address
 validate_ip() {
@@ -70,7 +85,6 @@ if [[ $confirm != [yY] ]]; then
     exit 1
 fi
 
-echo
 echo "Updating configuration files..."
 
 # Create .env file if it doesn't exist
@@ -99,13 +113,6 @@ sed -i "s/HOST1_IP/$HOST1_IP/g" galera-prd2.cnf
 sed -i "s/HOST2_IP/$HOST2_IP/g" galera-prd2.cnf
 sed -i "s/SST_USER_PLACEHOLDER/$SST_USER/g" galera-prd2.cnf
 sed -i "s/SST_PASSWORD_PLACEHOLDER/$SST_PASSWORD/g" galera-prd2.cnf
-
-# Update docker-compose files
-sed -i "s/HOST1_IP/$HOST1_IP/g" docker-compose-host1.yml
-sed -i "s/HOST2_IP/$HOST2_IP/g" docker-compose-host1.yml
-
-sed -i "s/HOST1_IP/$HOST1_IP/g" docker-compose-host2.yml
-sed -i "s/HOST2_IP/$HOST2_IP/g" docker-compose-host2.yml
 
 # Create .env file if it doesn't exist
 if [ ! -f .env ]; then
@@ -207,6 +214,7 @@ if [[ $auto_deploy == [yY] ]]; then
         echo "✅ Host 1 deployment successful!"
         echo "To start the primary node on Host 1:"
         echo "ssh $SSH_USER@$HOST1_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose.yml up -d'"
+        ssh $SSH_USER@$HOST1_IP "cd $WORKDIR && $COMPOSE_EXEC -f docker-compose.yml up -d"
     else
         echo "❌ Host 1 deployment failed!"
     fi
@@ -220,6 +228,7 @@ if [[ $auto_deploy == [yY] ]]; then
         echo "✅ Host 2 deployment successful!"
         echo "To start the secondary node on Host 2 (after primary is running):"
         echo "ssh $SSH_USER@$HOST2_IP 'cd $WORKDIR && $COMPOSE_EXEC -f docker-compose.yml up -d'"
+        ssh $SSH_USER@$HOST2_IP "cd $WORKDIR && $COMPOSE_EXEC -f docker-compose.yml up -d"
     else
         echo "❌ Host 2 deployment failed!"
     fi
@@ -246,7 +255,7 @@ else
     echo "5. On Host 2, run: $COMPOSE_EXEC -f docker-compose-host2.yml up -d"
     echo
     echo "To verify the cluster is working:"
-    echo "docker exec -it mariadb-galera-prd1 mysql -u root -p -e \"SHOW STATUS LIKE 'wsrep_cluster_size';\""
+    echo "$COMPOSE_EXEC exec -it mariadb-galera-prd1 mysql -u root -p -e \"SHOW STATUS LIKE 'wsrep_cluster_size';\""
     echo
     echo "The cluster size should show '2' when both nodes are connected."
 fi
