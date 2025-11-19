@@ -1,62 +1,37 @@
 [mysqld]
-# Basic MariaDB settings
 bind-address = 0.0.0.0
 default_storage_engine = InnoDB
 innodb_autoinc_lock_mode = 2
-innodb_flush_log_at_trx_commit = 0
+innodb_flush_log_at_trx_commit = 2
 innodb_buffer_pool_size = 512M
 
-# Binary logging
-log-bin = mysql-bin
-binlog_format = ROW
-
-# Galera Provider Configuration
+# Galera provider
 wsrep_on = ON
 wsrep_provider = /usr/lib/galera/libgalera_smm.so
+binlog_format = ROW
 
-# Galera Cluster Configuration
-wsrep_cluster_name = "dcsautomation_galera_cluster"
-wsrep_cluster_address = "gcomm://10.87.2.22:4567,10.87.2.23:4567"
+# Switching ALL addresses to docker-compose, so comment them out here:
+# wsrep_cluster_address =
+# wsrep_node_address =
+# wsrep_node_name =
+# wsrep_cluster_name =
+# wsrep_sst_auth = "SST_USER:SST_PASSWORD"
 
-# Galera Synchronization Configuration
 wsrep_sst_method = rsync
 
-# Security settings for SST
-wsrep_sst_auth = "sst_user:SstPassword123"
-
-# Galera Node Configuration - NODE 1 SPECIFIC
-wsrep_node_name = "prd1"
-wsrep_node_address = "10.87.2.22"
-
-# Galera replication configuration
-wsrep_slave_threads = 4
-wsrep_certify_nonPK = 1
-wsrep_max_ws_rows = 0
-wsrep_max_ws_size = 2147483647
-wsrep_debug = 0
-wsrep_convert_LOCK_to_trx = 0
-wsrep_retry_autocommit = 1
-wsrep_auto_increment_control = 1
-wsrep_drupal_282555_workaround = 0
-wsrep_notify_cmd = ""
-
-# Performance tuning
-max_connections = 200
-thread_cache_size = 8
-thread_stack = 192K
-transaction-isolation = READ-COMMITTED
-
-# Logging
-general_log = 1
-general_log_file = /var/log/mysql/mysql.log
+# Logs
 log_error = /var/log/mysql/error.log
 slow_query_log = 1
 slow_query_log_file = /var/log/mysql/mysql-slow.log
 long_query_time = 2
 
-# Character set
+# Charset
 character-set-server = utf8mb4
-collation-server = utf8mb4_unicode_ci
+collation-server = utf8mb4_0900_ai_ci
+
+# Safety
+myisam-recover-options = BACKUP
+wsrep_log_conflicts = ON
 
 [mysql]
 default-character-set = utf8mb4
