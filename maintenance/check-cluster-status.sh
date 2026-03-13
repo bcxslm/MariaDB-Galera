@@ -15,14 +15,27 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Load environment variables from .env
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/../.env"
+if [[ -f "$ENV_FILE" ]]; then
+    source "$ENV_FILE"
+else
+    echo -e "${RED}ERROR: .env file not found at $ENV_FILE${NC}"
+    echo "Please create .env from .env.example in the parent directory."
+    exit 1
+fi
+
+# Validate required variables
+: "${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is not set in .env}"
+: "${NODE1_HOST:?NODE1_HOST is not set in .env}"
+: "${NODE2_HOST:?NODE2_HOST is not set in .env}"
+
 # Configuration
 NODE1_CONTAINER="mariadb-galera-node1"
 NODE2_CONTAINER="mariadb-galera-node2"
 NODE1_VOLUME="mariadb-galera-node1_mariadb_data"
 NODE2_VOLUME="mariadb-galera-node2_mariadb_data"
-MYSQL_ROOT_PASSWORD="REDACTED_PASSWORD"
-NODE1_HOST="your-node1-hostname"
-NODE2_HOST="your-node2-hostname"
 
 # Determine which node we're on
 HOSTNAME=$(hostname)

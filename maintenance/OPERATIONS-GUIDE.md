@@ -41,9 +41,9 @@ docker start mariadb-galera-node1
 sleep 30
 
 # Check status
-docker exec mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' -e "
-    SELECT VARIABLE_NAME, VARIABLE_VALUE 
-    FROM information_schema.GLOBAL_STATUS 
+docker exec mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
+    SELECT VARIABLE_NAME, VARIABLE_VALUE
+    FROM information_schema.GLOBAL_STATUS
     WHERE VARIABLE_NAME IN ('wsrep_cluster_status', 'wsrep_ready');"
 ```
 
@@ -60,9 +60,9 @@ docker start mariadb-galera-node2
 sleep 30
 
 # Check status
-docker exec mariadb-galera-node2 mariadb -uroot -p'REDACTED_PASSWORD' -e "
-    SELECT VARIABLE_NAME, VARIABLE_VALUE 
-    FROM information_schema.GLOBAL_STATUS 
+docker exec mariadb-galera-node2 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
+    SELECT VARIABLE_NAME, VARIABLE_VALUE
+    FROM information_schema.GLOBAL_STATUS
     WHERE VARIABLE_NAME IN ('wsrep_cluster_size', 'wsrep_local_state_comment');"
 ```
 
@@ -76,9 +76,9 @@ docker exec mariadb-galera-node2 mariadb -uroot -p'REDACTED_PASSWORD' -e "
 
 ```bash
 # Run on either node
-docker exec mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' -e "
-    SELECT VARIABLE_NAME, VARIABLE_VALUE 
-    FROM information_schema.GLOBAL_STATUS 
+docker exec mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
+    SELECT VARIABLE_NAME, VARIABLE_VALUE
+    FROM information_schema.GLOBAL_STATUS
     WHERE VARIABLE_NAME IN (
         'wsrep_cluster_size',
         'wsrep_cluster_status',
@@ -169,7 +169,7 @@ docker start mariadb-galera-node1
 
 # Wait and verify
 sleep 30
-docker exec mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' -e "
+docker exec mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
     SHOW STATUS LIKE 'wsrep_cluster_status';"
 ```
 
@@ -181,7 +181,7 @@ ssh your-node2-hostname "docker start mariadb-galera-node2"
 
 # Wait and verify
 sleep 30
-docker exec mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' -e "
+docker exec mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
     SHOW STATUS LIKE 'wsrep_cluster_size';"
 ```
 
@@ -255,7 +255,7 @@ docker restart mariadb-galera-node2
 ### Create Backup
 ```bash
 # SQL dump
-docker exec mariadb-galera-node1 mariadb-dump -uroot -p'REDACTED_PASSWORD' \
+docker exec mariadb-galera-node1 mariadb-dump -uroot -p"$MYSQL_ROOT_PASSWORD" \
     --all-databases --single-transaction > /data/docker_configs/mariadb_galera/backup/backup-$(date +%Y%m%d).sql
 ```
 
@@ -263,11 +263,11 @@ docker exec mariadb-galera-node1 mariadb-dump -uroot -p'REDACTED_PASSWORD' \
 ```bash
 # Restore SQL dump (cluster must be running)
 # Data will automatically replicate to node2
-docker exec -i mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' < /data/docker_configs/mariadb_galera/backup/backup.sql
+docker exec -i mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" < /data/docker_configs/mariadb_galera/backup/backup.sql
 
 # Verify restoration on both nodes
-docker exec mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' -e "SHOW DATABASES;"
-docker exec mariadb-galera-node2 mariadb -uroot -p'REDACTED_PASSWORD' -e "SHOW DATABASES;"
+docker exec mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "SHOW DATABASES;"
+docker exec mariadb-galera-node2 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "SHOW DATABASES;"
 ```
 
 ---

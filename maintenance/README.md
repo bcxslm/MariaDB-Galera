@@ -185,9 +185,9 @@ The cluster consists of two nodes:
 
 ### Check Cluster Status
 ```bash
-docker exec mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' -e "
-    SELECT VARIABLE_NAME, VARIABLE_VALUE 
-    FROM information_schema.GLOBAL_STATUS 
+docker exec mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
+    SELECT VARIABLE_NAME, VARIABLE_VALUE
+    FROM information_schema.GLOBAL_STATUS
     WHERE VARIABLE_NAME IN (
         'wsrep_cluster_size',
         'wsrep_cluster_status',
@@ -332,28 +332,28 @@ Use alphanumeric passwords with simple special characters like `-`, `_` only.
 ### Create Backup
 ```bash
 # Logical backup (SQL dump)
-docker exec mariadb-galera-node1 mariadb-dump -uroot -p'REDACTED_PASSWORD' \
+docker exec mariadb-galera-node1 mariadb-dump -uroot -p"$MYSQL_ROOT_PASSWORD" \
     --all-databases --single-transaction > /data/docker_configs/mariadb_galera/backup/backup-$(date +%Y%m%d).sql
 
 # Physical backup (mariadb-backup)
 docker exec mariadb-galera-node1 mariadb-backup --backup \
     --target-dir=/data/docker_configs/mariadb_galera/backup/physical-$(date +%Y%m%d) \
     --user=root \
-    --password='REDACTED_PASSWORD'
+    --password="$MYSQL_ROOT_PASSWORD"
 ```
 
 ### Restore from Backup
 ```bash
 # Restore SQL dump (cluster must be running)
 # Data will automatically replicate to node2
-docker exec -i mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' < /data/docker_configs/mariadb_galera/backup/backup.sql
+docker exec -i mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" < /data/docker_configs/mariadb_galera/backup/backup.sql
 
 # Or restore to specific database
-docker exec -i mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' dcsautomation < /data/docker_configs/mariadb_galera/backup/backup.sql
+docker exec -i mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" dcsautomation < /data/docker_configs/mariadb_galera/backup/backup.sql
 
 # Verify restoration
-docker exec mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' -e "SHOW DATABASES;"
-docker exec mariadb-galera-node2 mariadb -uroot -p'REDACTED_PASSWORD' -e "SHOW DATABASES;"
+docker exec mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "SHOW DATABASES;"
+docker exec mariadb-galera-node2 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "SHOW DATABASES;"
 ```
 
 ---

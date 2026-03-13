@@ -211,7 +211,7 @@ The `--wsrep-new-cluster` flag should:
 
 5. **Wait for node1 to be PRIMARY** (30-60 seconds):
    ```bash
-   docker exec mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' -e "
+   docker exec mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
        SHOW STATUS LIKE 'wsrep_cluster_status';"
    ```
    Should show: `Primary`
@@ -223,9 +223,9 @@ The `--wsrep-new-cluster` flag should:
 
 7. **Verify cluster health**:
    ```bash
-   docker exec mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' -e "
-       SELECT VARIABLE_NAME, VARIABLE_VALUE 
-       FROM information_schema.GLOBAL_STATUS 
+   docker exec mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
+       SELECT VARIABLE_NAME, VARIABLE_VALUE
+       FROM information_schema.GLOBAL_STATUS
        WHERE VARIABLE_NAME IN (
            'wsrep_cluster_size',
            'wsrep_cluster_status',
@@ -265,17 +265,17 @@ Tested multiple MariaDB versions to isolate the issue:
 
 ### Create Backup
 ```bash
-docker exec mariadb-galera-node1 mariadb-dump -uroot -p'REDACTED_PASSWORD' \
+docker exec mariadb-galera-node1 mariadb-dump -uroot -p"$MYSQL_ROOT_PASSWORD" \
     --all-databases --single-transaction > /data/docker_configs/mariadb_galera/backup/backup-$(date +%Y%m%d).sql
 ```
 
 ### Restore Backup
 ```bash
 # Cluster must be running and healthy
-docker exec -i mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' < /data/docker_configs/mariadb_galera/backup/backup.sql
+docker exec -i mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" < /data/docker_configs/mariadb_galera/backup/backup.sql
 
 # Verify replication to node2
-docker exec mariadb-galera-node2 mariadb -uroot -p'REDACTED_PASSWORD' -e "SHOW DATABASES;"
+docker exec mariadb-galera-node2 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "SHOW DATABASES;"
 ```
 
 ---

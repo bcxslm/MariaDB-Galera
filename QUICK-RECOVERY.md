@@ -49,7 +49,7 @@ docker compose --env-file .prd1.env -f docker-compose-host1.yml up -d
 ## Verify Cluster Health
 
 ```bash
-docker exec mariadb-galera-node1 mysql -uroot -p'REDACTED_PASSWORD' -e "
+docker exec mariadb-galera-node1 mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
 SHOW STATUS LIKE 'wsrep_cluster_size';
 SHOW STATUS LIKE 'wsrep_ready';
 SHOW STATUS LIKE 'wsrep_connected';

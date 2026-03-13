@@ -17,13 +17,27 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Load environment variables from .env
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/../.env"
+if [[ -f "$ENV_FILE" ]]; then
+    source "$ENV_FILE"
+else
+    echo -e "${RED}ERROR: .env file not found at $ENV_FILE${NC}"
+    echo "Please create .env from .env.example in the parent directory."
+    exit 1
+fi
+
+# Validate required variables
+: "${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is not set in .env}"
+: "${NODE1_HOST:?NODE1_HOST is not set in .env}"
+: "${NODE2_HOST:?NODE2_HOST is not set in .env}"
+
 # Configuration
 NODE1_CONTAINER="mariadb-galera-node1"
 NODE2_CONTAINER="mariadb-galera-node2"
 NODE1_VOLUME="mariadb-galera-node1_mariadb_data"
 NODE2_VOLUME="mariadb-galera-node2_mariadb_data"
-NODE1_HOST="your-node1-hostname"
-NODE2_HOST="your-node2-hostname"
 
 echo -e "${RED}========================================${NC}"
 echo -e "${RED}MariaDB Galera Emergency Recovery${NC}"
@@ -159,14 +173,14 @@ echo ""
 
 echo -e "${BLUE}Step 7: Verifying bootstrap node status...${NC}"
 if [[ "$BOOTSTRAP_NODE" == "node1" ]]; then
-    docker exec "$NODE1_CONTAINER" mariadb -uroot -p'REDACTED_PASSWORD' -e "
-        SELECT VARIABLE_NAME, VARIABLE_VALUE 
-        FROM information_schema.GLOBAL_STATUS 
+    docker exec "$NODE1_CONTAINER" mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
+        SELECT VARIABLE_NAME, VARIABLE_VALUE
+        FROM information_schema.GLOBAL_STATUS
         WHERE VARIABLE_NAME IN ('wsrep_cluster_status', 'wsrep_ready', 'wsrep_local_state_comment');"
 else
-    ssh "$NODE2_HOST" "docker exec $NODE2_CONTAINER mariadb -uroot -p'REDACTED_PASSWORD' -e \"
-        SELECT VARIABLE_NAME, VARIABLE_VALUE 
-        FROM information_schema.GLOBAL_STATUS 
+    ssh "$NODE2_HOST" "docker exec $NODE2_CONTAINER mariadb -uroot -p'$MYSQL_ROOT_PASSWORD' -e \"
+        SELECT VARIABLE_NAME, VARIABLE_VALUE
+        FROM information_schema.GLOBAL_STATUS
         WHERE VARIABLE_NAME IN ('wsrep_cluster_status', 'wsrep_ready', 'wsrep_local_state_comment');\""
 fi
 echo ""
@@ -189,16 +203,16 @@ echo ""
 
 echo -e "${BLUE}Step 9: Verifying cluster status...${NC}"
 echo -e "${YELLOW}Node1 status:${NC}"
-docker exec "$NODE1_CONTAINER" mariadb -uroot -p'REDACTED_PASSWORD' -e "
-    SELECT VARIABLE_NAME, VARIABLE_VALUE 
-    FROM information_schema.GLOBAL_STATUS 
+docker exec "$NODE1_CONTAINER" mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
+    SELECT VARIABLE_NAME, VARIABLE_VALUE
+    FROM information_schema.GLOBAL_STATUS
     WHERE VARIABLE_NAME IN ('wsrep_cluster_size', 'wsrep_cluster_status', 'wsrep_ready');" || echo "Node1 not accessible"
 echo ""
 
 echo -e "${YELLOW}Node2 status:${NC}"
-ssh "$NODE2_HOST" "docker exec $NODE2_CONTAINER mariadb -uroot -p'REDACTED_PASSWORD' -e \"
-    SELECT VARIABLE_NAME, VARIABLE_VALUE 
-    FROM information_schema.GLOBAL_STATUS 
+ssh "$NODE2_HOST" "docker exec $NODE2_CONTAINER mariadb -uroot -p'$MYSQL_ROOT_PASSWORD' -e \"
+    SELECT VARIABLE_NAME, VARIABLE_VALUE
+    FROM information_schema.GLOBAL_STATUS
     WHERE VARIABLE_NAME IN ('wsrep_cluster_size', 'wsrep_cluster_status', 'wsrep_ready');\"" || echo "Node2 not accessible"
 echo ""
 

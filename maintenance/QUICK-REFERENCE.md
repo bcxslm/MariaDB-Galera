@@ -37,9 +37,9 @@
 
 ### Quick Status
 ```bash
-docker exec mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' -e "
-    SELECT VARIABLE_NAME, VARIABLE_VALUE 
-    FROM information_schema.GLOBAL_STATUS 
+docker exec mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
+    SELECT VARIABLE_NAME, VARIABLE_VALUE
+    FROM information_schema.GLOBAL_STATUS
     WHERE VARIABLE_NAME IN (
         'wsrep_cluster_size',
         'wsrep_cluster_status',
@@ -116,7 +116,7 @@ sleep 30
 docker start mariadb-galera-node2
 
 # 6. Verify cluster
-docker exec mariadb-galera-node1 mariadb -uroot -p'REDACTED_PASSWORD' -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+docker exec mariadb-galera-node1 mariadb -uroot -p"$MYSQL_ROOT_PASSWORD" -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
 ```
 
 ---
@@ -150,7 +150,7 @@ docker logs mariadb-galera-node2 2>&1 | grep -i error
 
 ### Quick SQL Backup
 ```bash
-docker exec mariadb-galera-node1 mariadb-dump -uroot -p'REDACTED_PASSWORD' \
+docker exec mariadb-galera-node1 mariadb-dump -uroot -p"$MYSQL_ROOT_PASSWORD" \
     --all-databases --single-transaction > /data/docker_configs/mariadb_galera/backup/backup-$(date +%Y%m%d).sql
 ```
 
@@ -159,7 +159,7 @@ docker exec mariadb-galera-node1 mariadb-dump -uroot -p'REDACTED_PASSWORD' \
 docker exec mariadb-galera-node1 mariadb-backup --backup \
     --target-dir=/data/docker_configs/mariadb_galera/backup/physical-$(date +%Y%m%d) \
     --user=root \
-    --password='REDACTED_PASSWORD'
+    --password="$MYSQL_ROOT_PASSWORD"
 ```
 
 ---
