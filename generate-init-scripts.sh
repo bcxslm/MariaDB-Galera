@@ -5,6 +5,7 @@
 
 set -e
 
+echo "=== MariaDB Initialization Script Generator ==="
 echo "Generating MariaDB initialization scripts with environment variables..."
 
 # Source the .env file to get variables

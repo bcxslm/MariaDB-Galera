@@ -1,4 +1,5 @@
 -- Create a test database and table to verify cluster replication
+CREATE DATABASE IF NOT EXISTS testdb;
 USE testdb;
 
 -- Create a test table

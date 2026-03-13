@@ -3,7 +3,7 @@
 bind-address = 0.0.0.0
 default_storage_engine = InnoDB
 innodb_autoinc_lock_mode = 2
-innodb_flush_log_at_trx_commit = 0
+innodb_flush_log_at_trx_commit = 2
 innodb_buffer_pool_size = 512M
 
 # Binary logging
@@ -29,6 +29,7 @@ wsrep_node_name = "prd1"
 wsrep_node_address = "10.87.2.22"
 
 # Galera replication configuration
+wsrep_log_conflicts = ON
 wsrep_slave_threads = 4
 wsrep_certify_nonPK = 1
 wsrep_max_ws_rows = 0
@@ -45,10 +46,9 @@ max_connections = 200
 thread_cache_size = 8
 thread_stack = 192K
 transaction-isolation = READ-COMMITTED
+myisam-recover-options = BACKUP
 
 # Logging
-general_log = 1
-general_log_file = /var/log/mysql/mysql.log
 log_error = /var/log/mysql/error.log
 slow_query_log = 1
 slow_query_log_file = /var/log/mysql/mysql-slow.log

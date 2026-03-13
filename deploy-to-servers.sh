@@ -153,7 +153,7 @@ if [[ $auto_deploy == [yY] ]]; then
     echo "Starting automatic deployment..."
     
     # Deploy to Host 1
-    if deploy_to_server "$SRV1" "docker-compose-host1.yml.tmp" "galera-node1.cnf.tmp"; then
+    if deploy_to_server "$SRV1" "docker-compose-host1.yml.tmp" "galera-prd1.cnf.tmp"; then
         echo
         echo "To start the primary node on $SRV1:"
         echo "ssh $USER@$SRV1 'cd $CONFIG_PATH && docker compose -f docker-compose-host1.yml up -d'"
@@ -162,7 +162,7 @@ if [[ $auto_deploy == [yY] ]]; then
     echo
 
     # Deploy to Host 2
-    if deploy_to_server "$SRV2" "docker-compose-host2.yml.tmp" "galera-node2.cnf.tmp"; then
+    if deploy_to_server "$SRV2" "docker-compose-host2.yml.tmp" "galera-prd2.cnf.tmp"; then
         echo
         echo "To start the secondary node on $SRV2 (after primary is running):"
         echo "ssh $USER@$SRV2 'cd $CONFIG_PATH && docker compose -f docker-compose-host2.yml up -d'"
@@ -180,7 +180,7 @@ else
     echo
     echo "2. Copy files to $SRV2:$CONFIG_PATH/"
     echo "   - docker-compose-host2.yml.tmp (rename to docker-compose-host2.yml)"
-    echo "   - galera-node2.cnf.tmp (rename to galera-node2.cnf)"
+    echo "   - galera-prd2.cnf.tmp (rename to galera-prd2.cnf)"
     echo "   - .env"
     echo "   - init-scripts/ (entire directory)"
     echo
